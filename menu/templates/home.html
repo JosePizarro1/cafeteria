@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Logisys</title>
+  <link rel="icon" href="{% static 'images/boxes.png' %}" type="image/png">
+  <!-- Fuente Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #343a40;
+      padding-top: 20px;
+    }
+
+    .sidebar a {
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .sidebar a:hover {
+      background-color: #575757;
+    }
+
+    .sidebar .submenu a {
+      padding-left: 30px;
+    }
+
+    /* Contenedor principal para el contenido */
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      background-color: #232a33;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Paneles del dashboard */
+    .panel {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .panel-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .panel-body {
+      font-size: 1.2rem;
+    }
+
+    .panel .icon {
+      font-size: 2rem;
+      color: #0d6efd;
+    }
+
+    /* Ajustes responsivos */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+      .content {
+        margin-left: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2 class="text-white text-center mb-4">
+      <img src="{% static 'images/boxes.png' %}" alt="Logisys Icon" width="30" class="me-2"> Logisys
+    </h2>
+    <a href="#">Dashboard <i class="fas fa-tachometer-alt ms-2"></i></a>
+    <a href="#">Ventas <i class="fas fa-shopping-cart ms-2"></i></a>
+    <div class="submenu">
+      <a href="#">Inventario <i class="fas fa-boxes ms-2"></i></a>
+      <a href="#">Categorías <i class="fas fa-cogs ms-2"></i></a>
+    </div>
+    <a href="#">Reporte <i class="fas fa-chart-line ms-2"></i></a>
+    <a href="#">Cerrar sesión <i class="fas fa-sign-out-alt ms-2"></i></a>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="content">
+    <!-- Header -->
+    <div class="header">
+      Dashboard
+    </div>
+
+    <!-- Paneles del Dashboard -->
+    <div class="container mt-4">
+      <div class="row">
+        <!-- Panel 1 -->
+        <div class="col-md-4">
+          <div class="panel">
+            <div class="panel-header">
+              <i class="fas fa-dollar-sign icon"></i> Ingresos
+            </div>
+            <div class="panel-body">
+              <p>Aquí irá el contenido</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2 -->
+        <div class="col-md-4">
+          <div class="panel">
+            <div class="panel-header">
+              <i class="fas fa-piggy-bank icon"></i> Ganancias
+            </div>
+            <div class="panel-body">
+              <p>Aquí irá el contenido</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3 -->
+        <div class="col-md-4">
+          <div class="panel">
+            <div class="panel-header">
+              <i class="fas fa-chart-line icon"></i> Ventas
+            </div>
+            <div class="panel-body">
+              <p>Aquí irá el contenido</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fila para más paneles o contenido -->
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <!-- Agregar más paneles aquí o gráficos -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS y dependencias -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

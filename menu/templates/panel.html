@@ -1,0 +1,102 @@
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">LOGISYS<sup> Pro</sup></div>
+    </a>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="{% url 'dashboard' %}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Gestión de Inventario
+    </div>
+
+    <!-- Nav Item - Productos -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'productos_list' %}">
+            <i class="fas fa-fw fa-boxes"></i>
+            <span>Productos</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Sedes -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSedes"
+            aria-expanded="true" aria-controls="collapseSedes">
+            <i class="fas fa-fw fa-building"></i>
+            <span>Sedes</span>
+        </a>
+        <div id="collapseSedes" class="collapse" aria-labelledby="headingSedes" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Opciones de Sedes:</h6>
+                <a class="collapse-item" href="{% url 'sedes_list' %}">Ver Sedes</a>
+                <a class="collapse-item" href="{% url 'sedes_create' %}">Crear Sede</a>
+            </div>
+        </div>
+    </li>
+
+    <!-- Nav Item - Kardex -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'kardex_list' %}">
+            <i class="fas fa-fw fa-clipboard-list"></i>
+            <span>Kardex</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Gestión de Ventas
+    </div>
+
+    <!-- Nav Item - Ventas -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseVentas"
+            aria-expanded="true" aria-controls="collapseVentas">
+            <i class="fas fa-fw fa-shopping-cart"></i>
+            <span>Ventas</span>
+        </a>
+        <div id="collapseVentas" class="collapse" aria-labelledby="headingVentas" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Opciones de Ventas:</h6>
+                <a class="collapse-item" href="{% url 'ventas_list' %}">Ver Ventas</a>
+                <a class="collapse-item" href="{% url 'ventas_create' %}">Nueva Venta</a>
+            </div>
+        </div>
+    </li>
+
+    <!-- Nav Item - Reportes -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'reportes' %}">
+            <i class="fas fa-fw fa-chart-line"></i>
+            <span>Reportes</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+</ul>
