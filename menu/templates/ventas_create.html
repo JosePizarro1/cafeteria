@@ -1,0 +1,233 @@
+{% extends "index.html" %}
+
+{% block content %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Registrar Venta</h6>
+    </div>
+    <div class="card-body">
+        <form id="venta-form" method="POST" action="{% url 'registrar_venta' %}">
+            {% csrf_token %}
+        <div class="form-group">
+            <label for="sede">Sede</label>
+            <select name="sede" id="sede" class="form-control" 
+                    {% if user.rol.es_usuario and user.rol.sede %}readonly disabled{% endif %}>
+                <option value="">Seleccione una sede</option>
+                {% for sede in sedes %}
+                    <option value="{{ sede.id }}" 
+                            {% if user.rol.sede and user.rol.sede.id == sede.id %}selected{% endif %}>
+                        {{ sede.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+            <div class="form-group">
+                <label for="metodo_pago">Método de Pago</label>
+                <select name="metodo_pago" id="metodo_pago" class="form-control" required>
+                    <option value="EF">Efectivo</option>
+                    <option value="YP">Yape</option>
+                    <option value="CR">Crédito</option>
+                </select>
+            </div>
+            
+            <div class="form-group d-none" id="cliente-container">
+                <label for="cliente">Cliente</label>
+                <select name="cliente" id="cliente" class="form-control select2">
+                    <option value="">Seleccione un cliente</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}">{{ cliente.nombre}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Productos</label>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Subtotal</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productos-venta">
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-right font-weight-bold">Total:</td>
+                            <td id="total-venta">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <button type="button" id="add-producto" class="btn btn-success btn-sm">Agregar Producto</button>
+            </div>
+            <button type="button" id="btn-guardar" class="btn btn-primary btn-block">Registrar Venta</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.select2').select2({ width: '100%' });
+
+        // Limpiar los productos y el total al cambiar la sede
+        $('#sede').change(function () {
+            $('#productos-venta').empty();  // Limpiar la tabla de productos cuando se cambia la sede
+            $('#total-venta').text('0.00');  // Limpiar el total cuando se cambia la sede
+        });
+        // Mostrar campo de cliente al seleccionar "Crédito"
+        $('#metodo_pago').change(function () {
+            if ($(this).val() === 'CR') {
+                $('#cliente-container').removeClass('d-none'); // Mostrar el campo
+                $('#cliente').attr('required', true); // Hacerlo obligatorio
+            } else {
+                $('#cliente-container').addClass('d-none'); // Ocultar el campo
+                $('#cliente').attr('required', false).val('').trigger('change'); // Limpiar selección
+            }
+        });
+
+        // Cargar productos dinámicamente según la sede seleccionada solo cuando se hace clic en "Agregar Producto"
+        $('#add-producto').click(function () {
+            const sedeId = $('#sede').val();  // Obtener la sede seleccionada
+            if (sedeId) {
+                $.ajax({
+                    url: '/api/productos_por_sede/',
+                    data: { sede_id: sedeId },
+                    success: function (data) {
+                        const row = `
+                            <tr>
+                                <td>
+                                    <select name="producto[]" class="form-control select2 producto" required>
+                                        <option value="">Seleccione un producto</option>
+                                        ${data.productos.map(producto => `
+                                            <option value="${producto.id}" data-precio="${producto.precio}">${producto.nombre}</option>
+                                        `).join('')}
+                                    </select>
+                                </td>
+                                <td class="precio">0.00</td>  <!-- El precio se muestra aquí automáticamente -->
+                                <td>
+                                    <input type="number" name="cantidad[]" class="form-control cantidad" min="1" required>
+                                </td>
+                                <td class="subtotal">0.00</td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm remove-producto">Eliminar</button>
+                                </td>
+                            </tr>
+                        `;
+                        $('#productos-venta').append(row);
+                        $('.select2').select2({ width: '100%' });
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'No se pudieron cargar los productos.', 'error');
+                    }
+                });
+            } else {
+                Swal.fire('Error', 'Por favor, selecciona una sede primero.', 'error');
+            }
+        });
+
+        // Actualizar precio y subtotal al seleccionar producto
+        $(document).on('change', '.producto', function () {
+            const precio = parseFloat($(this).find(':selected').data('precio')) || 0;  // Asegurarse de que precio sea un número
+            $(this).closest('tr').find('.precio').text(precio.toFixed(2));  // El precio se coloca automáticamente
+            actualizarSubtotal($(this).closest('tr'));
+        });
+
+        // Calcular subtotal al ingresar cantidad
+        $(document).on('input', '.cantidad', function () {
+            actualizarSubtotal($(this).closest('tr'));
+        });
+
+        // Eliminar producto
+        $(document).on('click', '.remove-producto', function () {
+            $(this).closest('tr').remove();
+            actualizarTotal();
+        });
+
+        // Función para actualizar el subtotal
+        function actualizarSubtotal(row) {
+            const precio = parseFloat(row.find('.precio').text()) || 0;
+            const cantidad = parseFloat(row.find('.cantidad').val()) || 0;
+            const subtotal = precio * cantidad;
+            row.find('.subtotal').text(subtotal.toFixed(2));
+            actualizarTotal();
+        }
+
+        // Función para actualizar el total general
+        function actualizarTotal() {
+            let total = 0;
+            $('.subtotal').each(function () {
+                total += parseFloat($(this).text()) || 0;
+            });
+            $('#total-venta').text(total.toFixed(2));
+        }
+
+        // Validar y enviar formulario
+        // Interceptar el envío del formulario
+        $('#btn-guardar').click(function () {
+            if ($('#venta-form')[0].checkValidity()) {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: 'Se registrará la venta con los productos seleccionados.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, registrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Enviar los datos del formulario usando AJAX
+                        const formData = $('#venta-form').serialize();
+                        $.ajax({
+                            url: $('#venta-form').attr('action'),
+                            type: 'POST',
+                            data: formData,
+                            success: function (response) {
+                                if (response.status === 'success') {
+                                    Swal.fire('Éxito', response.message, 'success');
+                                    limpiarFormulario();
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function (xhr) {
+                                const errorResponse = xhr.responseJSON;
+                                const errorMessage = errorResponse ? errorResponse.message : 'Ocurrió un error.';
+                                Swal.fire('Error', errorMessage, 'error');
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire('Error', 'Por favor, complete todos los campos antes de continuar.', 'error');
+            }
+        });
+
+        // Función para limpiar el formulario después de registrar la venta
+        function limpiarFormulario() {
+            $('#sede').val('').trigger('change');
+            $('#metodo_pago').val('');
+            $('#productos-venta').empty();
+            $('#total-venta').text('0.00');
+            $('#cliente-container').addClass('d-none');
+            $('#cliente').val('').trigger('change');
+        }
+        
+        
+    });
+</script>
+
+
+{% endblock %}

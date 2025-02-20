@@ -1,72 +1,98 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
+<a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% if user.rol.es_admin %}{% url 'dashboard' %}{% else %}#{% endif %}">
         <div class="sidebar-brand-icon rotate-n-15">
             <i class="fas fa-box"></i>
         </div>
-        <div class="sidebar-brand-text mx-3">LOGISYS<sup> Pro</sup></div>
+        <div class="sidebar-brand-text mx-3">AROMAS<sup> Cafe</sup></div>
     </a>
 
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
+    <!-- Condicional para mostrar opciones de admin -->
+    {% if user.is_authenticated and user.rol and user.rol.es_admin %}
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item ">
+            <a class="nav-link" href="{% url 'dashboard' %}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
 
-    <!-- Nav Item - Dashboard -->
-    <li class="nav-item active">
-        <a class="nav-link" href="{% url 'dashboard' %}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-        </a>
-    </li>
-
-    <!-- Divider -->
-    <hr class="sidebar-divider">
-
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Gestión de Inventario
-    </div>
-
-    <!-- Nav Item - Productos -->
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'productos_list' %}">
-            <i class="fas fa-fw fa-boxes"></i>
-            <span>Productos</span>
-        </a>
-    </li>
-
-    <!-- Nav Item - Sedes -->
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSedes"
-            aria-expanded="true" aria-controls="collapseSedes">
-            <i class="fas fa-fw fa-building"></i>
-            <span>Sedes</span>
-        </a>
-        <div id="collapseSedes" class="collapse" aria-labelledby="headingSedes" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Opciones de Sedes:</h6>
-                <a class="collapse-item" href="{% url 'sedes_list' %}">Ver Sedes</a>
-                <a class="collapse-item" href="{% url 'sedes_create' %}">Crear Sede</a>
+        <!-- Nav Item - Usuarios -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsuarios"
+                aria-expanded="true" aria-controls="collapseUsuarios">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Gestión de Usuarios</span>
+            </a>
+            <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Opciones de Usuarios:</h6>
+                    <a class="collapse-item" href="{% url 'crear_usuario' %}">Crear Usuario</a>
+                    <a class="collapse-item" href="{% url 'asignar_rol_sede' %}">Asignar Rol y Sede</a>
+                </div>
             </div>
-        </div>
-    </li>
+        </li>
 
-    <!-- Nav Item - Kardex -->
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'kardex_list' %}">
-            <i class="fas fa-fw fa-clipboard-list"></i>
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            Gestión de Inventario
+        </div>
+
+        <!-- Nav Item - Productos -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProducto"
+                aria-expanded="true" aria-controls="collapseProducto">
+                <i class="fas fa-fw fa-boxes"></i>
+                <span>Producto</span>
+            </a>
+            <div id="collapseProducto" class="collapse" aria-labelledby="headingProducto" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Opciones de Producto:</h6>
+                    <a class="collapse-item" href="{% url 'productos_list' %}">Ver Productos</a>
+                    <a class="collapse-item" href="{% url 'productos_create' %}">Crear Productos</a>
+                </div>
+            </div>
+        </li>
+
+        <!-- Nav Item - Kardex -->
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'kardex_list' %}">
+                <i class="fas fa-fw fa-clipboard-list"></i>
+                <span>Transferencia</span>
+            </a>
+        </li>
+        <!-- Nav Item - Reportes -->
+
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'reportes' %}">
+                <i class="fas fa-fw fa-chart-line"></i>
+                <span>Reportes</span>
+            </a>
+        </li>
+            <li class="nav-item">
+        <a class="nav-link" href="{% url 'inventario' %}">
+            <i class="fas fa-fw fa-boxes"></i> <!-- Icono de inventario -->
             <span>Kardex</span>
         </a>
     </li>
 
-    <!-- Divider -->
-    <hr class="sidebar-divider">
 
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Gestión de Ventas
-    </div>
+        <!-- Divider -->
+        <hr class="sidebar-divider">
 
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            Gestión de Ventas
+        </div>
+    {% endif %}
+
+    <!-- Opciones comunes para todos los usuarios -->
     <!-- Nav Item - Ventas -->
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseVentas"
@@ -82,14 +108,15 @@
             </div>
         </div>
     </li>
-
-    <!-- Nav Item - Reportes -->
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'reportes' %}">
-            <i class="fas fa-fw fa-chart-line"></i>
-            <span>Reportes</span>
-        </a>
+    <a class="nav-link" href="{% url 'deudores' %}">
+        <i class="fas fa-fw fa-users"></i>  <!-- Cambié el icono para reflejar mejor la sección de deudores -->
+        <span>Deudores</span>
+    </a>
     </li>
+
+
+
 
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">

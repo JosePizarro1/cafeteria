@@ -1,0 +1,82 @@
+{% extends "index.html" %}
+{% block content %}
+{% load static %}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Movimientos de Kardex</h6>
+    </div>
+    <div class="card-body">
+        
+        <div class="table-responsive">
+            <table id="kardex-table" class="table table-striped table-bordered" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Sede</th>
+                        <th>Producto</th>
+                        <th>Movimiento</th>
+                        <th>Cantidad</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kardex in kardex_movimientos %}
+                        <tr>
+                            <td>{{ kardex.id }}</td>
+                            <td>{{ kardex.fecha }}</td>
+                            <td>{{ kardex.sede.nombre|default:"Principal" }}</td>
+                            <td>{{ kardex.producto.nombre }}</td>
+                            <td>
+                                {% if kardex.movimiento == 'IN' %}
+                                    <span class="badge bg-success text-white">Ingreso</span>
+                                {% else %}
+                                    <span class="badge bg-danger text-white">Salida</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ kardex.cantidad }}</td>
+                            <td>{{ kardex.observacion|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Agregar DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#kardex-table').DataTable({
+            "responsive": true,
+            "paging": true,
+            "lengthMenu": [10, 25, 50, 100],
+            "searching": true,
+            "ordering": true,
+            "order": [[0, "desc"]],  // Ordenar por ID de mayor a menor
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

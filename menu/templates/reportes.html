@@ -1,0 +1,212 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Panel izquierdo: Ventas del Día -->
+        <div class="col-md-6">
+<!-- Card: Ventas del Día -->
+<div class="card shadow mb-4">
+    <a href="#ventasCollapse" class="d-block card-header py-3" data-toggle="collapse">
+        <h6 class="m-0 font-weight-bold text-primary">Ventas del Día</h6>
+    </a>
+    <div class="collapse show" id="ventasCollapse">
+        <div class="card-body">
+            <!-- Filtro de fecha -->
+            <div class="form-group">
+                <label for="fecha">Seleccionar Fecha</label>
+                <input type="date" id="fecha" class="form-control" value="{{ fecha_seleccionada }}" onchange="filtrarVentas()">
+            </div>
+            <div id="exportButtons" class="mb-3"></div>
+
+            <!-- Tabla de ventas -->
+            <div class="table-responsive">
+                <table id="ventasTable" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Sede</th>
+                            <th>Método de Pago</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for venta in ventas %}
+                            <tr>
+                                <td>{{ venta.sede.nombre|default:"Principal" }}</td>
+                                <td>{{ venta.get_metodo_pago_display }}</td>
+                                <td>S/. {{ venta.total|floatformat:2 }}</td>
+                                <td>
+                                    {% if venta.cancelada %}
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+
+<!-- Panel derecho: Resumen Kardex -->
+<!-- Panel derecho: Resumen Kardex -->
+<div class="col-md-6">
+    <div class="card shadow mb-4">
+        <!-- Encabezado de la card con funcionalidad de colapsar -->
+        <div class="card-header py-3" data-toggle="collapse" data-target="#kardexCollapse" style="cursor: pointer;">
+            <h6 class="m-0 font-weight-bold text-primary">Resumen Kardex</h6>
+        </div>
+        <!-- Contenido de la card colapsable -->
+        <div id="kardexCollapse" class="collapse show">
+            <div class="card-body">
+                <!-- Tabla de productos en el Kardex -->
+                <div class="table-responsive">
+                    <table id="kardexTable" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Almacén</th>
+                                <th>Egatur</th>
+                                <th>Focus</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for producto, stock in kardex.items %}
+                            {% with total_stock=stock.stock_principal|add:stock.sede1_stock|add:stock.sede2_stock %}
+                            <tr>
+                                <td>{{ producto }}</td>
+                                <td class="text-center">
+                                    <span class="badge p-2 text-white {% if stock.stock_principal < 10 %} bg-danger {% else %} bg-success {% endif %}">
+                                        {{ stock.stock_principal }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge p-2 text-white {% if stock.sede1_stock < 10 %} bg-danger {% else %} bg-success {% endif %}">
+                                        {{ stock.sede1_stock }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge p-2 text-white {% if stock.sede2_stock < 10 %} bg-danger {% else %} bg-success {% endif %}">
+                                        {{ stock.sede2_stock }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge p-2 text-white {% if total_stock < 10 %} bg-danger {% else %} bg-success {% endif %}">
+                                        {{ total_stock }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No hay productos disponibles en las sedes.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    </div>
+</div>
+<!-- Agregar DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+                $('#kardexTable').DataTable({
+            responsive: true,
+            dom: '<"row"<"col-md-6"B><"col-md-6"f>>rtip', // Botones arriba a la izquierda
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fas fa-file-excel"></i>',
+                    className: 'btn btn-success btn-sm'
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fas fa-file-pdf"></i>',
+                    className: 'btn btn-danger btn-sm',
+                    orientation: 'portrait',
+                    pageSize: 'A4',
+                    title: 'Resumen Kardex'
+                }
+            ],
+            searching: true, // Desactiva el buscador
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+        let table = $('#ventasTable').DataTable({
+            responsive: true,
+            order: [[2, 'desc']], // Ordenar por total de mayor a menor
+            dom: '<"row"<"col-md-6"B><"col-md-6"f>>rtip', // Botones arriba a la izquierda
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fas fa-file-excel"></i>',
+                    className: 'btn btn-success btn-sm'
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: '<i class="fas fa-file-pdf"></i>',
+                    className: 'btn btn-danger btn-sm',
+                    orientation: 'portrait',
+                    pageSize: 'A4',
+                    title: 'Reporte de Ventas del Día'
+                }
+            ],
+            searching: false, // Desactiva el buscador
+            language: {
+                "decimal": ",",
+                "thousands": ".",
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+
+        // Mueve los botones de exportación a un div externo si es necesario
+        table.buttons().container().appendTo('#exportButtons');
+    });
+</script>
+
+
+{% endblock %}

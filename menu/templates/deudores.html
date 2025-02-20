@@ -1,0 +1,148 @@
+{% extends "index.html" %}
+{% block content %}
+{% load static %}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Deudores</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="deudores-table" class="table table-striped table-bordered" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Método de Pago</th>
+                        <th>Total Venta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                        <tr>
+                            <td>{{ venta.id }}</td>
+                            <td>
+                                {% if venta.cliente %}
+                                    {{ venta.cliente.nombre }}
+                                {% else %}
+                                    - 
+                                {% endif %}
+                            </td>
+                            <td>{{ venta.fecha|date:"Y-m-d H:i" }}</td>
+                            <td>{{ venta.get_metodo_pago_display }}</td>
+                            <td>S/ {{ venta.total }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-info btn-circle btn-sm" onclick="verDetalles({{ venta.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-success btn-circle btn-sm" onclick="confirmarPago({{ venta.id }})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles -->
+<div class="modal fade" id="detalleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de Venta</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detalle-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agregar DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#deudores-table').DataTable({
+            "responsive": true,
+            "paging": true,
+            "lengthMenu": [10, 25, 50, 100],
+            "searching": true,
+            "ordering": true,
+            "order": [[0, "desc"]],
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+    });
+
+    function verDetalles(venta_id) {
+        $.get(`/ventas/detalle/${venta_id}/`, function(data) {
+            let tbody = "";
+            data.forEach(item => {
+                tbody += `<tr>
+                    <td>${item.producto}</td>
+                    <td>${item.cantidad}</td>
+                    <td>S/ ${item.precio_unitario}</td>
+                    <td>S/ ${item.subtotal}</td>
+                </tr>`;
+            });
+            $("#detalle-body").html(tbody);
+            $("#detalleModal").modal("show");
+        });
+    }
+
+    function confirmarPago(venta_id) {
+        Swal.fire({
+            title: "¿Marcar como pagada?",
+            text: "Esta acción no se puede deshacer",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, marcar",
+            cancelButtonText: "Cancelar"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post(`/ventas/marcar_pagada/${venta_id}/`, function(response) {
+                    Swal.fire("¡Pagado!", "La venta ha sido marcada como pagada.", "success").then(() => {
+                        location.reload();
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends "index.html" %}
+
+{% block content %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="row">
+<!-- Card para Transferir Productos -->
+<div class="col-lg-6">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Transferir Productos entre Sedes</h6>
+        </div>
+        <div class="card-body">
+            <form id="transferir-form" method="POST" action="{% url 'transferir_productos' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="producto_transferencia">Producto</label>
+                    <select name="producto_transferencia" id="producto_transferencia" class="form-control select2" required>
+                            <option value="">Seleccione un producto</option>
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cantidad_actual">Cantidad Disponible</label>
+                    <input type="number" id="cantidad_actual2" class="form-control" placeholder="0" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="cantidad_transferencia">Cantidad a transferir</label>
+                    <input type="number" name="cantidad_transferencia" id="cantidad_transferencia" class="form-control" placeholder="0" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="sede_transferencia">Sede de Destino</label>
+                    <select name="sede_transferencia" id="sede_transferencia" class="form-control select2" required>
+                        <option value="">Seleccione una sede</option>
+                        {% for sede in sedes %}
+                            <option value="{{ sede.id }}">{{ sede.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" id="btn-transferir" class="btn btn-primary btn-block">Transferir</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Card para Registrar Entradas -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">Registrar Entradas de Productos</h6>
+            </div>
+            <div class="card-body">
+            <form id="form-entrada" method="POST" action="{% url 'registrar_entrada' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="producto_entrada">Producto</label>
+                    <select name="producto_entrada" id="producto_entrada" class="form-control select2">
+                        <option value="">Seleccione un producto</option>
+                        {% for producto in productos %}
+                            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cantidad_actual">Cantidad Actual</label>
+                    <input type="number" id="cantidad_actual" class="form-control" placeholder="0" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="cantidad_entrada">Cantidad a Agregar</label>
+                    <input type="number" name="cantidad_entrada" id="cantidad_entrada" class="form-control" placeholder="0" required>
+                </div>
+                <button type="button" id="btn-enviar" class="btn btn-success btn-block">Agregar</button>
+            </form>
+
+
+            </div>
+        </div>
+    </div>
+    
+    
+</div>
+
+<!-- Mostrar SweetAlert si hay mensajes -->
+{% if messages %}
+    <script>
+        {% for message in messages %}
+            var messageType = "{{ message.tags }}";
+            var messageText = "{{ message }}";
+        {% endfor %}
+        Swal.fire({
+            icon: messageType === 'error' ? 'error' : messageType === 'success' ? 'success' : 'info',
+            title: messageType === 'success' ? '¡Éxito!' : messageType === 'error' ? '¡Oops!' : 'Atención',
+            text: messageText,
+        });
+    </script>
+{% endif %}
+<script>
+    document.getElementById('btn-transferir').addEventListener('click', function () {
+        const form = document.getElementById('transferir-form');
+        const producto = document.getElementById('producto_transferencia').value;
+        const cantidadTransferencia = document.getElementById('cantidad_transferencia').value;
+        const sede = document.getElementById('sede_transferencia').value;
+
+        // Validar que no haya campos vacíos
+        if (!producto || !cantidadTransferencia || !sede) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Campos incompletos',
+                text: 'Por favor, completa todos los campos antes de continuar.',
+            });
+            return;
+        }
+
+        // Confirmación de SweetAlert
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Se transferirán ${cantidadTransferencia} unidades del producto seleccionado.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, transferir',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
+<!-- Inicializar Select2 y manejar cantidad actual con AJAX -->
+<script>
+    document.getElementById("btn-enviar").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Obtener valores del formulario
+    const producto = document.getElementById("producto_entrada").options[document.getElementById("producto_entrada").selectedIndex].text;
+    const cantidadEntrada = document.getElementById("cantidad_entrada").value;
+
+    // Validar que los campos estén llenos
+    if (!producto || !cantidadEntrada) {
+        Swal.fire({
+            icon: "warning",
+            title: "Campos incompletos",
+            text: "Por favor, complete todos los campos antes de continuar.",
+        });
+        return;
+    }
+
+    // Mostrar alerta de confirmación
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: `Estás por agregar ${cantidadEntrada} unidades al producto "${producto}". ¿Deseas continuar?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, agregar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Enviar el formulario si confirma
+            document.getElementById("form-entrada").submit();
+        }
+    });
+});
+
+</script>
+<script>
+    $(document).ready(function () {
+    $('#producto_transferencia').select2();  // Corregido el selector
+    $('#producto_entrada').select2();
+        
+        $('#producto_transferencia').on('change', function () {
+            const productoId = $(this).val(); // Obtener el ID del producto seleccionado
+            if (productoId) {
+                // Realizar una petición AJAX para obtener la cantidad actual
+                $.ajax({
+                    url: '/obtener-cantidad-disponible/', // URL de la vista para obtener la cantidad
+                    type: 'GET',
+                    data: { producto_id: productoId },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#cantidad_actual2').val(response.cantidad_actual); // Actualizar el campo con la cantidad disponible
+                        } else {
+                            $('#cantidad_actual2').val(''); // Limpiar el campo en caso de error
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'No se pudo obtener la cantidad disponible.',
+                            });
+                        }
+                    },
+                    error: function () {
+                        $('#cantidad_actual2').val(''); // Limpiar el campo en caso de error en la petición
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Ocurrió un error al obtener la cantidad disponible.',
+                        });
+                    }
+                });
+            } else {
+                $('#cantidad_actual2').val(''); // Limpiar el campo si no hay producto seleccionado
+            }
+        });
+
+        // Obtener cantidad actual del producto seleccionado
+        $('#producto_entrada').on('change', function () {
+            const productoId = $(this).val();
+            if (productoId) {
+                // Hacer una peticion AJAX para obtener la cantidad actual del producto
+                $.get('/obtener-cantidad-actual/', { producto_id: productoId }, function (data) {
+                    if (data.success) {
+                        $('#cantidad_actual').val(data.cantidad_actual);
+                    } else {
+                        $('#cantidad_actual').val('');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'No se pudo obtener la cantidad actual.',
+                        });
+                    }
+                });
+            } else {
+                $('#cantidad_actual').val('');
+            }
+        });
+    });
+</script>
+{% endblock %}

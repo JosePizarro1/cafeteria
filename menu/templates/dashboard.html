@@ -1,0 +1,205 @@
+{% extends "index.html" %}
+
+{% block content %}
+{% load static %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="row">
+    <!-- Ganancias Mensuales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Ganancias Mensuales
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">S/.{{ ganancia_mes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ganancias Diarias -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Ganancias Diarias
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">S/.{{ ganancia_dia }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cantidad de Productos -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Cantidad de Productos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ productos_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dinero en Crédito -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Dinero en Crédito
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">S/.{{ ventas_credito }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos de Ganancias por Sede y Ganancias Diarias -->
+<div class="row">
+    <!-- Gráfico de Ganancias por Sede -->
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Gráfico de Ganancias por Sede</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="myAreaChart1"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Ganancias Diarias del Mes -->
+    <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Gráfico de Ganancias Diarias</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="myAreaChart2"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Contexto del gráfico
+    var ctx = document.getElementById('myAreaChart1').getContext('2d');
+
+    // Generar el gráfico
+    var myAreaChart1 = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ meses|safe }}, // Nombres de los meses
+            datasets: [
+                {
+                    label: 'Egatur',
+                    data: {{ ganancias_sede_1|safe }}, // Ganancias de la sede 1
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                },
+                {
+                    label: 'Focus',
+                    data: {{ ganancias_sede_2|safe }}, // Ganancias de la sede 2
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                },
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Meses',
+                    },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Ganancia',
+                    },
+                    beginAtZero: true,
+                },
+            },
+        },
+    });
+    // Gráfico de Ganancias Diarias del Mes
+var ctx2 = document.getElementById('myAreaChart2').getContext('2d');
+var myAreaChart2 = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ fechas|safe }},  // Fechas del mes
+        datasets: [{
+            label: 'Ganancias Diarias',
+            data: {{ ganancias_diarias|safe }},  // Ganancias por día
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            },
+        },
+    },
+});
+
+
+</script>
+
+{% endblock %}

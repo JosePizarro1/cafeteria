@@ -1,0 +1,59 @@
+{% extends "index.html" %}
+{% block content %}
+{% load static %}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Listado de Ventas</h6>
+    </div>
+    <div class="card-body">
+        {% if user.rol.es_admin and sedes %}
+            <div class="form-group">
+                <label for="sede-select">Filtrar por Sede:</label>
+                <select id="sede-select" class="form-control">
+                    <option value="">Todas las sedes</option>
+                    {% for sede in sedes %}
+                        <option value="{{ sede.id }}">{{ sede.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+        
+        <div class="table-responsive">
+            <table id="ventas-table" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Sede</th>
+                        <th>Método de Pago</th>
+                        <th>Total</th>
+                        <th>Cliente</th>
+                        <th>Cancelada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                        <tr>
+                            <td>{{ venta.id }}</td>
+                            <td>{{ venta.fecha }}</td>
+                            <td>{{ venta.sede.nombre }}</td>
+                            <td>{{ venta.get_metodo_pago_display }}</td>
+                            <td>{{ venta.total }}</td>
+                            <td>{{ venta.cliente.nombre|default:"Sin Cliente" }}</td>
+                            <td>
+                                {% if venta.cancelada %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

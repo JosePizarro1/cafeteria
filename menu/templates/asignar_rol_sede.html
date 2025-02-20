@@ -1,0 +1,172 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Panel izquierdo: Formulario de asignacion -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Asignar Roles y Sede</h6>
+                </div>
+                <div class="card-body">
+                    <form id="asignarRolForm" method="post">
+                        <div class="form-group">
+                            <label for="username">Usuario Seleccionado</label>
+                            <input type="text" class="form-control" id="username" name="username" readonly>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="sede">Sede</label>
+                            <select class="form-control" id="sede" name="sede">
+                                <option value="">Sin Sede</option>
+                                {% for sede in sedes %}
+                                    <option value="{{ sede.id }}" 
+                                            {% if sede.id == selected_sede_id %}
+                                                selected
+                                            {% endif %}>
+                                        {{ sede.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mt-4">
+                            <label>Roles</label>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="esAdmin" name="es_admin" 
+                                           {% if es_admin %}
+                                               checked 
+                                           {% endif %}>
+                                    <label class="form-check-label" for="esAdmin">Administrador</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="esUsuario" name="es_usuario" 
+                                           {% if es_usuario %}
+                                               checked 
+                                           {% endif %}>
+                                    <label class="form-check-label" for="esUsuario">Usuario Regular</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Asignar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: Lista de usuarios -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Usuarios</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="listaUsuarios">
+                        {% for usuario_info in usuarios_info %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ usuario_info.username }}
+                            <button class="btn btn-sm btn-primary seleccionarUsuario" data-username="{{ usuario_info.username }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Evento para cargar los datos del usuario seleccionado
+    document.querySelectorAll(".seleccionarUsuario").forEach((btn) => {
+        btn.addEventListener("click", function () {
+            const username = this.getAttribute("data-username");
+            document.getElementById("username").value = username;
+
+            // Realizamos una solicitud GET para obtener los datos del usuario seleccionado
+            fetch(`/obtener_usuario_info/?username=${username}`, {
+                method: "GET",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data) {
+                        document.getElementById("esAdmin").checked = data.es_admin;
+                        document.getElementById("esUsuario").checked = data.es_usuario;
+                        document.getElementById("sede").value = data.sede_id || "";
+                    }
+                })
+                .catch((error) => {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "No se pudieron cargar los datos del usuario.",
+                    });
+                });
+        });
+    });
+ document.getElementById("asignarRolForm").addEventListener("submit", function (e) {
+    e.preventDefault(); // Evitamos el comportamiento por defecto del formulario
+
+    const username = document.getElementById("username").value;
+    const es_admin = document.getElementById("esAdmin").checked;
+    const es_usuario = document.getElementById("esUsuario").checked;
+    const sede_id = document.getElementById("sede").value;
+
+    // Validamos si el usuario ha sido seleccionado
+    if (!username) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Debe seleccionar un usuario primero.",
+        });
+        return;
+    }
+
+    // Realizamos la solicitud POST para guardar los cambios
+    fetch("{% url 'guardar_roles' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({ username, es_admin, es_usuario, sede_id }), // Enviamos la data como JSON
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.error) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.error,
+                });
+            } else {
+                Swal.fire({
+                    icon: "success",
+                    title: "¡Éxito!",
+                    text: data.message,
+                }).then(() => {
+                    // Recargamos la página después de la asignación
+                    location.reload();
+                });
+            }
+        })
+        .catch((error) => {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Ocurrió un error inesperado.",
+            });
+        });
+});
+
+
+
+</script>
+{% endblock %}
